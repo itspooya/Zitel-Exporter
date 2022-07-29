@@ -1,0 +1,14 @@
+version: "3"
+services:
+  zitel-exporter:
+    container_name: zitel-exporter
+    build:
+        context: .
+        dockerfile: Dockerfile
+    ports:
+        - "9303:9303"
+    environment:
+      - MODEM_HOSTNAME=192.168.1.1
+      - MODEM_USERNAME=admin
+      - MODEM_PASSWORD=admin
+      - EXPORTER_PORT=9303
