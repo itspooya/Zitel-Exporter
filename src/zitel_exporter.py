@@ -57,6 +57,8 @@ class Exporter:
         :param password: password of zitel modem
         :param port:     exporter's port
         """
+        self.username = username
+        self.password = password
         self.session_id = login(hostname, username, password)
         self.hostname = hostname
         self.registered_metrics = 0
@@ -64,9 +66,13 @@ class Exporter:
         self.port = port
         self.sched = BlockingScheduler()
 
+    def get_session_id(self):
+        self.session_id = login(self.hostname,self.username,self.password)
+
     def schedule_jobs(self):
         start_http_server(int(self.port))
         self.sched.add_job(self.covert_to_prometheus_metric,"interval",seconds=10)
+        self.sched.add_job(self.get_session_id,"interval",minutes=45)
         self.sched.start()
 
     def get_celltower_stats(self):
