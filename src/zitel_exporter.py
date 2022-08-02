@@ -4,6 +4,7 @@ import hashlib
 from prometheus_client import Gauge, start_http_server
 import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
+session_id = str(uuid.uuid4().hex) + str(uuid.uuid4().hex)
 
 
 def login(hostname, username, password):
@@ -29,7 +30,7 @@ def login(hostname, username, password):
         try:
             session_id = response.json()["sessionId"]
         except ValueError:
-            logging.critical(f"Failed to get session id")
+            logging.critical("Failed to get session id")
             logging.critical("Password Incorrect")
             exit(1)
 
@@ -123,7 +124,7 @@ class Exporter:
                 else:
                     stats["RRCState"] = 0
             else:
-                logging.critical(f"Failed to get celltower stats")
+                logging.critical("Failed to get celltower stats")
                 exit(1)
         if traffic_stats["success"]:
             for key, value in traffic_stats.items():
