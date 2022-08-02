@@ -1,5 +1,7 @@
 # zitel-exporter
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4567b8ef61694bb9b06b41e3cbec69ea)](https://app.codacy.com/gh/itspooya/Zitel-Exporter?utm_source=github.com&utm_medium=referral&utm_content=itspooya/Zitel-Exporter&utm_campaign=Badge_Grade_Settings)
+
 ## What is zitel-exporter?
 
 It is a tool to export zitel data Prometheus compatible format
