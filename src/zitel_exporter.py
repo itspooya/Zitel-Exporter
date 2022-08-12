@@ -103,6 +103,10 @@ class Exporter:
         stats = {}
         celltower_stats = self.get_celltower_stats()
         traffic_stats = self.get_traffic_stats()
+        if not celltower_stats or not traffic_stats:
+            self.get_session_id()
+            celltower_stats = self.get_celltower_stats()
+            traffic_stats = self.get_traffic_stats()
         if celltower_stats and traffic_stats:
             if celltower_stats["success"]:
                 separator = "$"
@@ -124,15 +128,16 @@ class Exporter:
                 else:
                     stats["RRCState"] = 0
             else:
+                self.get_session_id()
                 logging.critical("Failed to get celltower stats")
                 exit(1)
         if traffic_stats["success"]:
             for key, value in traffic_stats.items():
                 stats[key] = value
             del stats["flowStatistics"]
-        if stats["success"]:
+        if "success" in stats:
             del stats["success"]
-        if stats["cmd"]:
+        if "cmd" in stats:
             del stats["cmd"]
         print(stats)
         if self.registered_metrics == 0:
