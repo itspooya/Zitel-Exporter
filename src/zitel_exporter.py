@@ -130,6 +130,8 @@ class Exporter:
             else:
                 self.get_session_id()
                 logging.critical("Failed to get celltower stats")
+                stats = {}
+                self.registered_metrics = 0
                 exit(1)
         if traffic_stats["success"]:
             for key, value in traffic_stats.items():
@@ -139,7 +141,6 @@ class Exporter:
             del stats["success"]
         if "cmd" in stats:
             del stats["cmd"]
-        print(stats)
         if self.registered_metrics == 0:
             for key, value in stats.items():
                 self.keys[key] = Gauge(f"{key.lower().replace('/', '')}", f"{key}", ["hostname"])
