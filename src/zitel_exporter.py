@@ -170,13 +170,6 @@ class Exporter:
                 self.registered_metrics = 1
         elif self.registered_metrics == 1:
             for key in self.keys.keys():
-                try:
-                    self.keys[key].labels(self.hostname).set(self.stats[key])
-                except KeyError:
-                    logging.critical("Failed to set data, resetting metrics")
-                    self.stats = {}
-                    self.keys = {}
-                    self.get_session_id()
-                    self.registered_metrics = 0
-                    break
+                self.keys[key].labels(self.hostname).set(self.stats[key])
+
 
