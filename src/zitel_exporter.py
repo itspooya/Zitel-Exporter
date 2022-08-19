@@ -154,4 +154,6 @@ class Exporter:
                     logging.critical("Failed to set data, resetting metrics")
                     stats = {}
                     self.get_session_id()
+                    self.registered_metrics = 0
+                    break
 
