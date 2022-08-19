@@ -152,6 +152,7 @@ class Exporter:
                 self.get_session_id()
                 logging.critical("Failed to get celltower stats")
                 self.stats = {}
+                self.keys = {}
                 self.registered_metrics = 0
                 exit(1)
         if traffic_stats["success"]:
@@ -164,10 +165,7 @@ class Exporter:
             del self.stats["cmd"]
         if self.registered_metrics == 0:
             for key, value in self.stats.items():
-                try:
-                    self.keys[key] = Gauge(f"{key.lower().replace('/', '')}", f"{key}", ["hostname"])
-                except "Duplicated" in Exception:
-                    logging.warning(f"DuplicateTimeSeriesError: {key}")
+                self.keys[key] = Gauge(f"{key.lower().replace('/', '')}", f"{key}", ["hostname"])
                 self.keys[key].labels(self.hostname).set(value)
                 self.registered_metrics = 1
         elif self.registered_metrics == 1:
@@ -177,6 +175,7 @@ class Exporter:
                 except KeyError:
                     logging.critical("Failed to set data, resetting metrics")
                     self.stats = {}
+                    self.keys = {}
                     self.get_session_id()
                     self.registered_metrics = 0
                     break
