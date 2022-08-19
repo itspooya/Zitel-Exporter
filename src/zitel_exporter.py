@@ -65,6 +65,7 @@ class Exporter:
         self.registered_metrics = 0
         self.keys = {}
         self.port = port
+        self.stats = {}
         self.sched = BlockingScheduler()
 
     def get_session_id(self):
@@ -100,7 +101,7 @@ class Exporter:
             return response.json()
 
     def covert_to_prometheus_metric(self):
-        stats = {}
+        self.stats = {}
         celltower_stats = self.get_celltower_stats()
         traffic_stats = self.get_traffic_stats()
         if not celltower_stats or not traffic_stats:
@@ -114,45 +115,45 @@ class Exporter:
                 temp_stats = celltower_stats["message"].replace(FIELD_SEPERATOR, ":")
                 temp_stats = temp_stats.replace(separator, "\n")
                 # convert to dictionary
-                stats = {}
+                self.stats = {}
                 for line in temp_stats.split("\n"):
                     if line:
                         key, value = line.split(":")
-                        stats[key.replace(" ", "_")] = value
+                        self.stats[key.replace(" ", "_")] = value
                 # Delete UL_MCS and DL_MCS
-                del stats["UL_MCS"]
-                del stats["DL_MCS"]
+                del self.stats["UL_MCS"]
+                del self.stats["DL_MCS"]
                 # Convert RRCState to Integer
-                if stats["RRCState"] == "CONNECTED":
-                    stats["RRCState"] = 1
+                if self.stats["RRCState"] == "CONNECTED":
+                    self.stats["RRCState"] = 1
                 else:
-                    stats["RRCState"] = 0
+                    self.stats["RRCState"] = 0
             else:
                 self.get_session_id()
                 logging.critical("Failed to get celltower stats")
-                stats = {}
+                self.stats = {}
                 self.registered_metrics = 0
                 exit(1)
         if traffic_stats["success"]:
             for key, value in traffic_stats.items():
-                stats[key] = value
-            del stats["flowStatistics"]
-        if "success" in stats:
-            del stats["success"]
-        if "cmd" in stats:
-            del stats["cmd"]
+                self.stats[key] = value
+            del self.stats["flowStatistics"]
+        if "success" in self.stats:
+            del self.stats["success"]
+        if "cmd" in self.stats:
+            del self.stats["cmd"]
         if self.registered_metrics == 0:
-            for key, value in stats.items():
+            for key, value in self.stats.items():
                 self.keys[key] = Gauge(f"{key.lower().replace('/', '')}", f"{key}", ["hostname"])
                 self.keys[key].labels(self.hostname).set(value)
                 self.registered_metrics = 1
         elif self.registered_metrics == 1:
             for key in self.keys.keys():
                 try:
-                    self.keys[key].labels(self.hostname).set(stats[key])
+                    self.keys[key].labels(self.hostname).set(self.stats[key])
                 except KeyError:
                     logging.critical("Failed to set data, resetting metrics")
-                    stats = {}
+                    self.stats = {}
                     self.get_session_id()
                     self.registered_metrics = 0
                     break
