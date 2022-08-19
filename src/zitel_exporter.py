@@ -9,11 +9,15 @@ session_id = str(uuid.uuid4().hex) + str(uuid.uuid4().hex)
 
 def login(hostname, username, password):
     global session_id
-    salt_response = requests.post(f"http://{hostname}/cgi-bin/http.cgi", json={
-        "cmd": 997,
-        "method": "POST",
-        "sessionId": str(uuid.uuid4().hex) + str(uuid.uuid4().hex)
-    })
+    try:
+        salt_response = requests.post(f"http://{hostname}/cgi-bin/http.cgi", json={
+            "cmd": 997,
+            "method": "POST",
+            "sessionId": str(uuid.uuid4().hex) + str(uuid.uuid4().hex)
+        })
+    except requests.exceptions.ConnectionError:
+        logging.error("Failed to connect to Zitel")
+        exit(1)
     salt = salt_response.json()["message"]
     salted_password = salt + hashlib.md5(password.encode("utf-8")).hexdigest()
     salted_password_hash = hashlib.sha256(salted_password.encode("utf-8")).hexdigest()
@@ -24,7 +28,11 @@ def login(hostname, username, password):
         "cmd": 100,
         "method": "POST"
     }
-    response = requests.post(f"http://{hostname}/cgi-bin/http.cgi", json=json_data, verify=False)
+    try:
+        response = requests.post(f"http://{hostname}/cgi-bin/http.cgi", json=json_data, verify=False)
+    except requests.exceptions.ConnectionError:
+        logging.error("Failed to connect to Zitel Modem")
+        exit(1)
 
     if response.status_code == 200:
         try:
@@ -41,7 +49,11 @@ def login(hostname, username, password):
             "sessionId": session_id
 
         }
-        loginresponse = requests.post(f"http://{hostname}/cgi-bin/http.cgi", json=login_data, verify=False)
+        try:
+            loginresponse = requests.post(f"http://{hostname}/cgi-bin/http.cgi", json=login_data, verify=False)
+        except requests.exceptions.ConnectionError:
+            logging.error("Failed to connect to Zitel Modem")
+            exit(1)
         if loginresponse.status_code == 200:
             if loginresponse.text:
                 if loginresponse.json()["success"]:
@@ -85,7 +97,11 @@ class Exporter:
             "method": "POST",
             "lang": "EN"
         }
-        response = requests.post(f"http://{self.hostname}/cgi-bin/http.cgi", json=json_data)
+        try:
+            response = requests.post(f"http://{self.hostname}/cgi-bin/http.cgi", json=json_data)
+        except requests.exceptions.ConnectionError:
+            logging.critical("Connection Error")
+            exit(1)
         if response.status_code == 200:
             return response.json()
 
@@ -96,7 +112,11 @@ class Exporter:
             "lang": "EN",
             "sessionId": session_id
         }
-        response = requests.post(f"http://{self.hostname}/cgi-bin/http.cgi", json=json_data)
+        try:
+            response = requests.post(f"http://{self.hostname}/cgi-bin/http.cgi", json=json_data)
+        except requests.exceptions.ConnectionError:
+            logging.critical("Connection Error")
+            exit(1)
         if response.status_code == 200:
             return response.json()
 
