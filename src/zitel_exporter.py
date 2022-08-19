@@ -164,7 +164,10 @@ class Exporter:
             del self.stats["cmd"]
         if self.registered_metrics == 0:
             for key, value in self.stats.items():
-                self.keys[key] = Gauge(f"{key.lower().replace('/', '')}", f"{key}", ["hostname"])
+                try:
+                    self.keys[key] = Gauge(f"{key.lower().replace('/', '')}", f"{key}", ["hostname"])
+                except "Duplicated" in Exception:
+                    logging.warning(f"DuplicateTimeSeriesError: {key}")
                 self.keys[key].labels(self.hostname).set(value)
                 self.registered_metrics = 1
         elif self.registered_metrics == 1:
